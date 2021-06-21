@@ -1,7 +1,7 @@
 FROM ubuntu:18.04
 WORKDIR /project
-RUN apt-get update -y && \
-    apt-get install nano wget git sudo curl -y
+RUN sudo apt-get update && \
+    sudo apt-get install nano wget git sudo curl -y
 RUN echo "Asia/Ho_Chi_Minh" > /etc/timezone
 ADD . /project/
 RUN cd /project && \
