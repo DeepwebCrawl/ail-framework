@@ -81,10 +81,18 @@ Installation
 
 Type these command lines for a fully automated installation and start AIL framework:
 ```bash
+# Clone the repo first
 git clone https://github.com/ail-project/ail-framework.git
 cd ail-framework
+
+# For Debian and Ubuntu based distributions
 ./installing_deps.sh
 
+# For Centos based distributions (Tested: Centos 8)
+chmod u+x centos_installing_deps.sh
+./centos_installing_deps.sh
+
+# Launch ail
 cd ~/ail-framework/
 cd bin/
 ./LAUNCH.sh -l
@@ -220,11 +228,12 @@ License
 
 ```
     Copyright (C) 2014 Jules Debra
-    Copyright (C) 2014-2020 CIRCL - Computer Incident Response Center Luxembourg (c/o smile, security made in Lëtzebuerg, Groupement d'Intérêt Economique)
-    Copyright (c) 2014-2020 Raphaël Vinot
-    Copyright (c) 2014-2020 Alexandre Dulaunoy
-    Copyright (c) 2016-2020 Sami Mokaddem
-    Copyright (c) 2018-2020 Thirion Aurélien
+    Copyright (C) 2014-2021 CIRCL - Computer Incident Response Center Luxembourg (c/o smile, security made in Lëtzebuerg, Groupement d'Intérêt Economique)
+    Copyright (c) 2014-2021 Raphaël Vinot
+    Copyright (c) 2014-2021 Alexandre Dulaunoy
+    Copyright (c) 2016-2021 Sami Mokaddem
+    Copyright (c) 2018-2021 Thirion Aurélien
+    Copyright (c) 2021 Olivier Sagit
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by

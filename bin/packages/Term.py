@@ -20,6 +20,7 @@ import Tracker
 
 from flask import escape
 
+sys.path.append(os.path.join(os.environ['AIL_BIN'], 'packages/'))
 import Date
 import Item
 
@@ -289,11 +290,16 @@ def parse_tracked_term_to_delete(dict_input, user_id):
     delete_term(term_uuid)
     return ({"uuid": term_uuid}, 200)
 
+# # TODO: MOVE IN TRACKER
 def delete_term(term_uuid):
     term = r_serv_term.hget('tracker:{}'.format(term_uuid), 'tracked')
     term_type = r_serv_term.hget('tracker:{}'.format(term_uuid), 'type')
     level = r_serv_term.hget('tracker:{}'.format(term_uuid), 'level')
     r_serv_term.srem('all:tracker_uuid:{}:{}'.format(term_type, term), term_uuid)
+
+    r_serv_term.srem(f'trackers:all', term_uuid)
+    r_serv_term.srem(f'trackers:all:{term_type}', term_uuid)
+
     # Term not tracked by other users
     if not r_serv_term.exists('all:tracker_uuid:{}:{}'.format(term_type, term)):
         r_serv_term.srem('all:tracker:{}'.format(term_type), term)
@@ -318,11 +324,19 @@ def delete_term(term_uuid):
     # remove mails
     r_serv_term.delete('tracker:mail:{}'.format(term_uuid))
 
+    # remove sources
+    r_serv_term.delete('tracker:sources:{}'.format(term_uuid))
+
     # remove item set
-    all_item_date = r_serv_term.zrange('tracker:stat:{}'.format(term_uuid), 0, -1)
-    for date in all_item_date:
-        r_serv_term.delete('tracker:item:{}:{}'.format(term_uuid, date))
-    r_serv_term.delete('tracker:stat:{}'.format(term_uuid))
+    #########################3
+    all_item_date = r_serv_term.zrange(f'tracker:stat:{term_uuid}', 0, -1, withscores=True)
+    if all_item_date:
+        all_item_date = dict(all_item_date)
+        for date in all_item_date:
+            for item_id in r_serv_term.smembers(f'tracker:item:{term_uuid}:{date}'):
+                r_serv_term.srem(f'obj:trackers:item:{item_id}', term_uuid)
+            r_serv_term.delete(f'tracker:item:{term_uuid}:{date}')
+        r_serv_term.delete('tracker:stat:{}'.format(term_uuid))
 
     if term_type == 'yara':
         # delete custom rule
@@ -359,6 +373,9 @@ def get_term_tags(term_uuid):
 
 def get_term_mails(term_uuid):
     return list(r_serv_term.smembers('tracker:mail:{}'.format(term_uuid)))
+
+def get_term_webhook(term_uuid):
+    return r_serv_term.hget('tracker:{}'.format(term_uuid), "webhook")
 
 def add_tracked_item(term_uuid, item_id, item_date):
     # track item
@@ -406,7 +423,7 @@ def parse_get_tracker_term_item(dict_input, user_id):
     if date_from > date_to:
         date_from = date_to
 
-    all_item_id = get_tracked_term_list_item(term_uuid, date_from, date_to)
+    all_item_id = Tracker.get_tracker_items_by_daterange(term_uuid, date_from, date_to)
     all_item_id = Item.get_item_list_desc(all_item_id)
 
     res_dict = {}
@@ -417,19 +434,10 @@ def parse_get_tracker_term_item(dict_input, user_id):
     return (res_dict, 200)
 
 def get_tracked_term_first_seen(term_uuid):
-    res = r_serv_term.zrange('tracker:stat:{}'.format(term_uuid), 0, 0)
-    if res:
-        return res[0]
-    else:
-        return None
-
+    return Tracker.get_tracker_first_seen(term_uuid)
 
 def get_tracked_term_last_seen(term_uuid):
-    res = r_serv_term.zrevrange('tracker:stat:{}'.format(term_uuid), 0, 0)
-    if res:
-        return res[0]
-    else:
-        return None
+    return Tracker.get_tracker_last_seen(term_uuid)
 
 def get_term_metedata(term_uuid, user_id=False, description=False, level=False, tags=False, mails=False, sparkline=False):
     dict_uuid = {}

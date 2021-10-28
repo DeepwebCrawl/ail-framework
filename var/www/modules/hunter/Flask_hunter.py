@@ -21,15 +21,13 @@ from flask_login import login_required, current_user
 sys.path.append(os.path.join(os.environ['AIL_BIN'], 'lib'))
 import Term
 import Tracker
+import item_basic
 
 # ============ VARIABLES ============
 import Flask_config
 
 app = Flask_config.app
 baseUrl = Flask_config.baseUrl
-r_serv_term = Flask_config.r_serv_term
-r_serv_cred = Flask_config.r_serv_cred
-r_serv_db = Flask_config.r_serv_db
 bootstrap_label = Flask_config.bootstrap_label
 
 hunter = Blueprint('hunter', __name__, template_folder='templates')
@@ -98,9 +96,11 @@ def add_tracked_menu():
         tracker_type  = request.form.get("tracker_type")
         nb_words = request.form.get("nb_word", 1)
         description = request.form.get("description", '')
+        webhook = request.form.get("webhook", '')
         level = request.form.get("level", 0)
         tags = request.form.get("tags", [])
         mails = request.form.get("mails", [])
+        sources = request.form.get("sources", [])
 
         # YARA #
         if tracker_type == 'yara':
@@ -121,20 +121,29 @@ def add_tracked_menu():
             mails = mails.split()
         if tags:
             tags = tags.split()
+        if sources:
+            sources = json.loads(sources)
 
-        input_dict = {"tracker": tracker, "type": tracker_type, "nb_words": nb_words, "tags": tags, "mails": mails, "level": level, "description": description}
+        input_dict = {"tracker": tracker, "type": tracker_type, "nb_words": nb_words,
+                        "tags": tags, "mails": mails, "sources": sources,
+                        "level": level, "description": description, "webhook": webhook}
         user_id = current_user.get_id()
         # edit tracker
         if tracker_uuid:
             input_dict['uuid'] = tracker_uuid
         res = Tracker.api_add_tracker(input_dict, user_id)
         if res[1] == 200:
-            return redirect(url_for('hunter.tracked_menu'))
+            if 'uuid' in res[0]:
+                return redirect(url_for('hunter.show_tracker', uuid=res[0]['uuid']))
+            else:
+                return redirect(url_for('hunter.tracked_menu'))
         else:
             ## TODO: use modal
             return Response(json.dumps(res[0], indent=2, sort_keys=True), mimetype='application/json'), res[1]
     else:
-        return render_template("edit_tracker.html", all_yara_files=Tracker.get_all_default_yara_files())
+        return render_template("edit_tracker.html",
+                                all_sources=item_basic.get_all_items_sources(r_list=True),
+                                all_yara_files=Tracker.get_all_default_yara_files())
 
 @hunter.route("/tracker/edit", methods=['GET', 'POST'])
 @login_required
@@ -147,7 +156,7 @@ def edit_tracked_menu():
     if res: # invalid access
         return Response(json.dumps(res[0], indent=2, sort_keys=True), mimetype='application/json'), res[1]
 
-    dict_tracker = Tracker.get_tracker_metedata(tracker_uuid, user_id=True, level=True, description=True, tags=True, mails=True)
+    dict_tracker = Tracker.get_tracker_metadata(tracker_uuid, user_id=True, level=True, description=True, tags=True, mails=True, sources=True, webhook=True)
     dict_tracker['tags'] = ' '.join(dict_tracker['tags'])
     dict_tracker['mails'] = ' '.join(dict_tracker['mails'])
 
@@ -164,6 +173,7 @@ def edit_tracked_menu():
             dict_tracker['content'] = Tracker.get_yara_rule_content(dict_tracker['tracker'])
 
     return render_template("edit_tracker.html", dict_tracker=dict_tracker,
+                                all_sources=item_basic.get_all_items_sources(r_list=True),
                                 all_yara_files=Tracker.get_all_default_yara_files())
 
     ## TO EDIT
@@ -180,8 +190,8 @@ def edit_tracked_menu():
 @login_read_only
 def show_tracker():
     user_id = current_user.get_id()
-    term_uuid = request.args.get('uuid', None)
-    res = Term.check_term_uuid_valid_access(term_uuid, user_id)
+    tracker_uuid = request.args.get('uuid', None)
+    res = Term.check_term_uuid_valid_access(tracker_uuid, user_id)
     if res: # invalid access
         return Response(json.dumps(res[0], indent=2, sort_keys=True), mimetype='application/json'), res[1]
 
@@ -193,15 +203,15 @@ def show_tracker():
     if date_to:
         date_to = date_to.replace('-', '')
 
-    tracker_metadata = Term.get_term_metedata(term_uuid, user_id=True, level=True, description=True, tags=True, mails=True, sparkline=True)
+    tracker_metadata = Tracker.get_tracker_metadata(tracker_uuid, user_id=True, level=True, description=True, tags=True, mails=True, sources=True, sparkline=True, webhook=True)
 
     if tracker_metadata['type'] == 'yara':
-        yara_rule_content = Tracker.get_yara_rule_content(tracker_metadata['term'])
+        yara_rule_content = Tracker.get_yara_rule_content(tracker_metadata['tracker'])
     else:
         yara_rule_content = None
 
     if date_from:
-        res = Term.parse_get_tracker_term_item({'uuid': term_uuid, 'date_from': date_from, 'date_to': date_to}, user_id)
+        res = Term.parse_get_tracker_term_item({'uuid': tracker_uuid, 'date_from': date_from, 'date_to': date_to}, user_id)
         if res[1] !=200:
             return Response(json.dumps(res[0], indent=2, sort_keys=True), mimetype='application/json'), res[1]
         tracker_metadata['items'] = res[0]['items']
@@ -211,6 +221,8 @@ def show_tracker():
         tracker_metadata['items'] = []
         tracker_metadata['date_from'] = ''
         tracker_metadata['date_to'] = ''
+
+    tracker_metadata['sources'] = sorted(tracker_metadata['sources'])
 
     return render_template("showTracker.html", tracker_metadata=tracker_metadata,
                                     yara_rule_content=yara_rule_content,

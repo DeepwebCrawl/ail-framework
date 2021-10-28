@@ -78,10 +78,10 @@ function helptext {
       [-k  | --killAll]            Kill DB + Scripts
       [-ks | --killscript]         Scripts
       [-u  | --update]             Update AIL
-      [-c  | --crawler]            LAUNCH Crawlers
-      [-f  | --launchFeeder]       LAUNCH Pystemon feeder
-      [-t  | --thirdpartyUpdate]   Update Web
+      [-ut | --thirdpartyUpdate]   Update UI/Frontend
+      [-t  | --test]               Launch Tests
       [-rp | --resetPassword]      Reset Password
+      [-f  | --launchFeeder]       LAUNCH Pystemon feeder
       [-m  | --menu]               Display Advanced Menu
       [-h  | --help]               Help
     "
@@ -147,54 +147,94 @@ function launching_scripts {
     sleep 0.1
     echo -e $GREEN"\t* Launching scripts"$DEFAULT
 
-    # LAUNCH CORE MODULE
+    ##################################
+    #         CORE MODULES           #
+    ##################################
     screen -S "Script_AIL" -X screen -t "JSON_importer" bash -c "cd ${AIL_BIN}/import; ${ENV_PY} ./JSON_importer.py; read x"
     sleep 0.1
     screen -S "Script_AIL" -X screen -t "Crawler_manager" bash -c "cd ${AIL_BIN}/core; ${ENV_PY} ./Crawler_manager.py; read x"
     sleep 0.1
     screen -S "Script_AIL" -X screen -t "D4_client" bash -c "cd ${AIL_BIN}/core; ${ENV_PY} ./D4_client.py; read x"
     sleep 0.1
+    screen -S "Script_AIL" -X screen -t "DbCleaner" bash -c "cd ${AIL_BIN}/core; ${ENV_PY} ./DbCleaner.py; read x"
+    sleep 0.1
+
+    screen -S "Script_AIL" -X screen -t "UpdateBackground" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./update-background.py; read x"
+    sleep 0.1
+
+    ##################################
+    #           MODULES              #
+    ##################################
+    screen -S "Script_AIL" -X screen -t "Global" bash -c "cd ${AIL_BIN}/modules; ${ENV_PY} ./Global.py; read x"
+    sleep 0.1
+    screen -S "Script_AIL" -X screen -t "Categ" bash -c "cd ${AIL_BIN}/modules; ${ENV_PY} ./Categ.py; read x"
+    sleep 0.1
+    screen -S "Script_AIL" -X screen -t "Indexer" bash -c "cd ${AIL_BIN}/modules; ${ENV_PY} ./Indexer.py; read x"
+    sleep 0.1
+    screen -S "Script_AIL" -X screen -t "Tags" bash -c "cd ${AIL_BIN}/modules; ${ENV_PY} ./Tags.py; read x"
+    sleep 0.1
+    screen -S "Script_AIL" -X screen -t "SubmitPaste" bash -c "cd ${AIL_BIN}/modules; ${ENV_PY} ./submit_paste.py; read x"
+    sleep 0.1
+
+    screen -S "Script_AIL" -X screen -t "ApiKey" bash -c "cd ${AIL_BIN}/modules; ${ENV_PY} ./ApiKey.py; read x"
+    sleep 0.1
+    screen -S "Script_AIL" -X screen -t "Credential" bash -c "cd ${AIL_BIN}/modules; ${ENV_PY} ./Credential.py; read x"
+    sleep 0.1
+    screen -S "Script_AIL" -X screen -t "CreditCards" bash -c "cd ${AIL_BIN}/modules; ${ENV_PY} ./CreditCards.py; read x"
+    sleep 0.1
+    screen -S "Script_AIL" -X screen -t "Decoder" bash -c "cd ${AIL_BIN}/modules; ${ENV_PY} ./Decoder.py; read x"
+    sleep 0.1
+    screen -S "Script_AIL" -X screen -t "DomClassifier" bash -c "cd ${AIL_BIN}/modules; ${ENV_PY} ./DomClassifier.py; read x"
+    sleep 0.1
+    screen -S "Script_AIL" -X screen -t "Keys" bash -c "cd ${AIL_BIN}/modules; ${ENV_PY} ./Keys.py; read x"
+    sleep 0.1
+    screen -S "Script_AIL" -X screen -t "Onion" bash -c "cd ${AIL_BIN}/modules; ${ENV_PY} ./Onion.py; read x"
+    sleep 0.1
+    screen -S "Script_AIL" -X screen -t "SentimentAnalysis" bash -c "cd ${AIL_BIN}/modules; ${ENV_PY} ./SentimentAnalysis.py; read x"
+    sleep 0.1
+
+    screen -S "Script_AIL" -X screen -t "Urls" bash -c "cd ${AIL_BIN}/modules; ${ENV_PY} ./Urls.py; read x"
+    sleep 0.1
+    screen -S "Script_AIL" -X screen -t "SQLInjectionDetection" bash -c "cd ${AIL_BIN}/modules; ${ENV_PY} ./SQLInjectionDetection.py; read x"
+    sleep 0.1
+    screen -S "Script_AIL" -X screen -t "LibInjection" bash -c "cd ${AIL_BIN}/modules; ${ENV_PY} ./LibInjection.py; read x"
+    sleep 0.1
 
 
+    ##################################
+    #       TRACKERS MODULES         #
+    ##################################
+    screen -S "Script_AIL" -X screen -t "Tracker_Term" bash -c "cd ${AIL_BIN}/trackers; ${ENV_PY} ./Tracker_Term.py; read x"
+    sleep 0.1
+    screen -S "Script_AIL" -X screen -t "Tracker_Regex" bash -c "cd ${AIL_BIN}/trackers; ${ENV_PY} ./Tracker_Regex.py; read x"
+    sleep 0.1
+    screen -S "Script_AIL" -X screen -t "Tracker_Yara" bash -c "cd ${AIL_BIN}/trackers; ${ENV_PY} ./Tracker_Yara.py; read x"
+    sleep 0.1
+    screen -S "Script_AIL" -X screen -t "Retro_Hunt" bash -c "cd ${AIL_BIN}/trackers; ${ENV_PY} ./Retro_Hunt.py; read x"
+    sleep 0.1
+    screen -S "Script_AIL" -X screen -t "Retro_Hunt" bash -c "cd ${AIL_BIN}/trackers; ${ENV_PY} ./Retro_Hunt.py; read x"
+    sleep 0.1
+
+    ##################################
+    #       DISABLED MODULES         #
+    ##################################
+    #screen -S "Script_AIL" -X screen -t "Phone" bash -c "cd ${AIL_BIN}/modules; ${ENV_PY} ./Phone.py; read x"
+    #sleep 0.1
+
+    ##################################
+    #                                #
+    ##################################
     screen -S "Script_AIL" -X screen -t "ModuleInformation" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./ModulesInformationV2.py -k 0 -c 1; read x"
     sleep 0.1
     screen -S "Script_AIL" -X screen -t "Mixer" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./Mixer.py; read x"
     sleep 0.1
-    screen -S "Script_AIL" -X screen -t "Global" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./Global.py; read x"
-    sleep 0.1
     screen -S "Script_AIL" -X screen -t "Duplicates" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./Duplicates.py; read x"
-    sleep 0.1
-    screen -S "Script_AIL" -X screen -t "DomClassifier" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./DomClassifier.py; read x"
-    sleep 0.1
-    screen -S "Script_AIL" -X screen -t "Categ" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./Categ.py; read x"
-    sleep 0.1
-    screen -S "Script_AIL" -X screen -t "CreditCards" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./CreditCards.py; read x"
     sleep 0.1
     screen -S "Script_AIL" -X screen -t "BankAccount" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./BankAccount.py; read x"
     sleep 0.1
-    screen -S "Script_AIL" -X screen -t "Onion" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./Onion.py; read x"
-    sleep 0.1
     screen -S "Script_AIL" -X screen -t "Mail" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./Mail.py; read x"
     sleep 0.1
-    screen -S "Script_AIL" -X screen -t "ApiKey" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./ApiKey.py; read x"
-    sleep 0.1
-    screen -S "Script_AIL" -X screen -t "Web" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./Web.py; read x"
-    sleep 0.1
-    screen -S "Script_AIL" -X screen -t "Credential" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./Credential.py; read x"
-    sleep 0.1
-    screen -S "Script_AIL" -X screen -t "TermTrackerMod" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./TermTrackerMod.py; read x"
-    sleep 0.1
-    screen -S "Script_AIL" -X screen -t "RegexTracker" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./RegexTracker.py; read x"
-    sleep 0.1
-    screen -S "Script_AIL" -X screen -t "Tracker_Yara" bash -c "cd ${AIL_BIN}/trackers; ${ENV_PY} ./Tracker_Yara.py; read x"
-    sleep 0.1
-    screen -S "Script_AIL" -X screen -t "Indexer" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./Indexer.py; read x"
-    sleep 0.1
-    screen -S "Script_AIL" -X screen -t "Keys" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./Keys.py; read x"
-    sleep 0.1
     screen -S "Script_AIL" -X screen -t "PgpDump" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./PgpDump.py; read x"
-    sleep 0.1
-    screen -S "Script_AIL" -X screen -t "Decoder" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./Decoder.py; read x"
     sleep 0.1
     screen -S "Script_AIL" -X screen -t "Cryptocurrency" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./Cryptocurrencies.py; read x"
     sleep 0.1
@@ -202,65 +242,19 @@ function launching_scripts {
     sleep 0.1
     screen -S "Script_AIL" -X screen -t "Tools" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./Tools.py; read x"
     sleep 0.1
-    #screen -S "Script_AIL" -X screen -t "Phone" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./Phone.py; read x"
-    #sleep 0.1
-    #screen -S "Script_AIL" -X screen -t "Release" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./Release.py; read x"
-    #sleep 0.1
     screen -S "Script_AIL" -X screen -t "Cve" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./Cve.py; read x"
-    sleep 0.1
-    screen -S "Script_AIL" -X screen -t "WebStats" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./WebStats.py; read x"
     sleep 0.1
     screen -S "Script_AIL" -X screen -t "ModuleStats" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./ModuleStats.py; read x"
     sleep 0.1
-    screen -S "Script_AIL" -X screen -t "SQLInjectionDetection" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./SQLInjectionDetection.py; read x"
-    sleep 0.1
-    screen -S "Script_AIL" -X screen -t "LibInjection" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./LibInjection.py; read x"
-    sleep 0.1
     screen -S "Script_AIL" -X screen -t "MISPtheHIVEfeeder" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./MISP_The_Hive_feeder.py; read x"
-    sleep 0.1
-    screen -S "Script_AIL" -X screen -t "Tags" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./Tags.py; read x"
     sleep 0.1
     screen -S "Script_AIL" -X screen -t "Languages" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./Languages.py; read x"
     sleep 0.1
-    screen -S "Script_AIL" -X screen -t "SentimentAnalysis" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./SentimentAnalysis.py; read x"
-    sleep 0.1
-    screen -S "Script_AIL" -X screen -t "DbCleaner" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./DbCleaner.py; read x"
-    sleep 0.1
-    screen -S "Script_AIL" -X screen -t "UpdateBackground" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./update-background.py; read x"
-    sleep 0.1
-    screen -S "Script_AIL" -X screen -t "SubmitPaste" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./submit_paste.py; read x"
-    sleep 0.1
     screen -S "Script_AIL" -X screen -t "IPAddress" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./IPAddress.py; read x"
 
-}
+    #screen -S "Script_AIL" -X screen -t "Release" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./Release.py; read x"
+    #sleep 0.1
 
-function launching_crawler {
-    if [[ ! $iscrawler ]]; then
-        CONFIG=$AIL_HOME/configs/core.cfg
-        lport=$(awk '/^\[Crawler\]/{f=1} f==1&&/^splash_port/{print $3;exit}' "${CONFIG}")
-
-        IFS='-' read -ra PORTS <<< "$lport"
-        if [ ${#PORTS[@]} -eq 1 ]
-        then
-            first_port=${PORTS[0]}
-            last_port=${PORTS[0]}
-        else
-            first_port=${PORTS[0]}
-            last_port=${PORTS[1]}
-        fi
-
-        screen -dmS "Crawler_AIL"
-        sleep 0.1
-
-        for ((i=first_port;i<=last_port;i++)); do
-            screen -S "Crawler_AIL" -X screen -t "onion_crawler:$i" bash -c "cd ${AIL_BIN}; ${ENV_PY} ./Crawler.py $i; read x"
-            sleep 0.1
-        done
-
-        echo -e $GREEN"\t* Launching Crawler_AIL scripts"$DEFAULT
-    else
-        echo -e $RED"\t* A screen is already launched"$DEFAULT
-    fi
 }
 
 function shutting_down_redis {
@@ -490,6 +484,12 @@ function update_thirdparty {
     fi
 }
 
+function launch_tests() {
+  tests_dir=${AIL_HOME}/tests
+  bin_dir=${AIL_BIN}
+  python3 `which nosetests` -w $tests_dir --with-coverage --cover-package=$bin_dir -d --cover-erase
+}
+
 function reset_password() {
   echo -e "\t* Reseting UI admin password..."
   if checking_ardb && checking_redis; then
@@ -557,9 +557,6 @@ function menu_display {
               Flask)
                   launch_flask;
                   ;;
-              Crawler)
-                  launching_crawler;
-                  ;;
               Killall)
                   killall;
                   ;;
@@ -614,11 +611,11 @@ while [ "$1" != "" ]; do
                                       ;;
         -u | --update )               update "--manual";
                                       ;;
-        -t | --thirdpartyUpdate )     update_thirdparty;
+        -t | --test )                 launch_tests;
+                                      ;;
+        -ut | --thirdpartyUpdate )    update_thirdparty;
                                       ;;
         -rp | --resetPassword )       reset_password;
-                                      ;;
-        -c | --crawler )              launching_crawler;
                                       ;;
         -f | --launchFeeder )         launch_feeder;
                                       ;;

@@ -25,10 +25,12 @@ import Decoded
 import Screenshot
 import Username
 
+from ail_objects import AbstractObject
 from item_basic import *
 
 config_loader = ConfigLoader.ConfigLoader()
 # get and sanityze PASTE DIRECTORY
+# # TODO: rename PASTES_FOLDER
 PASTES_FOLDER = os.path.join(os.environ['AIL_HOME'], config_loader.get_config_str("Directories", "pastes")) + '/'
 PASTES_FOLDER = os.path.join(os.path.realpath(PASTES_FOLDER), '')
 
@@ -549,7 +551,65 @@ def delete_domain_node(item_id):
     for child_id in get_all_domain_node_by_item_id(item_id):
         delete_item(child_id)
 
-# if __name__ == '__main__':
+
+class Item(AbstractObject):
+    """
+    AIL Item Object. (strings)
+    """
+
+    def __init__(self, id):
+        super(Item, self).__init__('item', id)
+
+    def get_date(self, separator=False):
+        """
+        Returns Item date
+        """
+        return item_basic.get_item_date(self.id, add_separator=separator)
+
+    def get_source(self):
+        """
+        Returns Item source/feeder name
+        """
+        #return self.id.split('/')[-5]
+        l_source = self.id.split('/')[:-4]
+        return os.path.join(*l_source)
+
+    def get_basename(self):
+        return os.path.basename(self.id)
+
+    def get_filename(self):
+        # Creating the full filepath
+        filename = os.path.join(PASTES_FOLDER, self.id)
+        filename = os.path.realpath(filename)
+
+        # incorrect filename
+        if not os.path.commonprefix([filename, PASTES_FOLDER]) == PASTES_FOLDER:
+            return None
+        else:
+            return filename
+
+    def get_content(self):
+        """
+        Returns Item content
+        """
+        return item_basic.get_item_content(self.id)
+
+    # # TODO:
+    def create(self):
+        pass
+
+    # # WARNING: UNCLEAN DELETE /!\ TEST ONLY /!\
+    # TODO: DELETE ITEM CORRELATION + TAGS + METADATA + ...
+    def delete(self):
+        try:
+            os.remove(self.get_filename())
+            return True
+        except FileNotFoundError:
+            return False
+
+#if __name__ == '__main__':
+
+
 #     import Domain
 #     domain = Domain.Domain('domain.onion')
 #     for domain_history in domain.get_domain_history():

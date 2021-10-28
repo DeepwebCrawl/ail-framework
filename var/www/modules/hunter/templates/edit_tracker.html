@@ -8,11 +8,13 @@
 	<link href="{{ url_for('static', filename='css/bootstrap4.min.css') }}" rel="stylesheet">
 	<link href="{{ url_for('static', filename='css/font-awesome.min.css') }}" rel="stylesheet">
 	<link href="{{ url_for('static', filename='css/daterangepicker.min.css') }}" rel="stylesheet">
+	<link href="{{ url_for('static', filename='css/tags.css') }}" rel="stylesheet">
 
 	<!-- JS -->
 	<script src="{{ url_for('static', filename='js/jquery.js')}}"></script>
 	<script src="{{ url_for('static', filename='js/popper.min.js')}}"></script>
 	<script src="{{ url_for('static', filename='js/bootstrap4.min.js')}}"></script>
+	<script src="{{ url_for('static', filename='js/tags.js') }}"></script>
 
 </head>
 
@@ -29,7 +31,7 @@
 
 						<div class="card my-3">
 						  <div class="card-header bg-dark text-white">
-								<h5 class="card-title">Edit a Tracker</h5>
+								<h5 class="card-title">{%if dict_tracker%}Edit a{%else%}Create a new{%endif%} Tracker</h5>
 							</div>
 						  <div class="card-body">
 
@@ -54,10 +56,24 @@
 										  </div>
 											<div class="input-group mb-2 mr-sm-2">
 										    <div class="input-group-prepend">
+										      <div class="input-group-text bg-info text-white"><i class="fas fa-anchor"></i></div>
+										    </div>
+												<input id="webhook" name="webhook" class="form-control" placeholder="Webhook URL" type="text" {%if dict_tracker%}{%if dict_tracker['webhook']%}value="{{dict_tracker['webhook']}}"{%endif%}{%endif%}>
+										  </div>
+											<div class="input-group mb-2 mr-sm-2">
+										    <div class="input-group-prepend">
 										      <div class="input-group-text bg-info text-white"><i class="fas fa-pencil-alt"></i></div>
 										    </div>
 												<input id="description" name="description" class="form-control" placeholder="Tracker Description (optional)" type="text" {%if dict_tracker%}{%if dict_tracker['description']%}value="{{dict_tracker['description']}}"{%endif%}{%endif%}>
 										  </div>
+
+											<div class="input-group mb-2 mr-sm-2">
+												<div class="input-group-prepend">
+										      <div class="input-group-text bg-dark text-white"><i class="fas fa-folder"></i></div>
+										    </div>
+												<input id="sources" class="form-control" type="text" name="sources" placeholder="Sources to track (ALL IF EMPTY)" autocomplete="off">
+											</div>
+
 										</div>
 										<div class="col-12 col-xl-3">
 											<div class="custom-control custom-switch mt-1">
@@ -135,10 +151,10 @@
 		</div>
 	</div>
 
-
 </body>
 
 <script>
+var ltags;
 var chart = {};
 $(document).ready(function(){
 	$("#page-Tracker").addClass("active");
@@ -147,6 +163,15 @@ $(document).ready(function(){
 	$("#tracker").hide();
 	$("#nb_word").hide();
 	$("#yara_rule").hide();
+
+	sources = $('#sources').tagSuggest({
+		data: {{all_sources|safe}},
+		{%if dict_tracker%}{%if dict_tracker['sources']%}value: {{dict_tracker['sources']|safe}},{%endif%}{%endif%}
+		sortOrder: 'name',
+		maxDropHeight: 200,
+		name: 'sources',
+		emptyText: 'Sources to track (ALL IF EMPTY)',
+		});
 
 	$('#tracker_type').on('change', function() {
 		var tracker_type = this.value;

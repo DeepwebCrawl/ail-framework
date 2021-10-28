@@ -7,6 +7,9 @@ import gzip
 
 import magic
 
+sys.path.append(os.path.join(os.environ['AIL_BIN'], 'packages/'))
+import Tag
+
 sys.path.append(os.path.join(os.environ['AIL_BIN'], 'lib/'))
 import ConfigLoader
 
@@ -41,7 +44,8 @@ def get_basename(item_id):
     return os.path.basename(item_id)
 
 def get_source(item_id):
-    return item_id.split('/')[-5]
+    l_source = item_id.split('/')[:-4]
+    return os.path.join(*l_source)
 
 # # TODO: add an option to check the tag
 def is_crawled(item_id):
@@ -64,7 +68,8 @@ def get_item_content(item_id):
                 item_content = f.read().decode()
                 r_cache.set(item_full_path, item_content)
                 r_cache.expire(item_full_path, 300)
-        except:
+        except Exception as e:
+            print(e)
             item_content = ''
     return str(item_content)
 
@@ -78,7 +83,7 @@ def is_father(item_id):
 def is_children(item_id):
     return r_serv_metadata.hexists('paste_metadata:{}'.format(item_id), 'father')
 
-def is_root_node():
+def is_root_node(item_id):
     if is_father(item_id) and not is_children(item_id):
         return True
     else:
@@ -126,8 +131,8 @@ def _delete_node(item_id):
     # only if item isn't deleted
     #if is_crawled(item_id):
     #    r_serv_metadata.hrem('paste_metadata:{}'.format(item_id), 'real_link')
-    for chidren_id in get_item_children(item_id):
-        r_serv_metadata.hdel('paste_metadata:{}'.format(chidren_id), 'father')
+    for children_id in get_item_children(item_id):
+        r_serv_metadata.hdel('paste_metadata:{}'.format(children_id), 'father')
     r_serv_metadata.delete('paste_children:{}'.format(item_id))
 
     # delete regular
@@ -176,7 +181,7 @@ def add_map_obj_id_item_id(obj_id, item_id, obj_type):
 ##--  --##
 
 ## COMMON ##
-def _get_dir_source_name(directory, source_name=None, l_sources_name=set()):
+def _get_dir_source_name(directory, source_name=None, l_sources_name=set(), filter_dir=False):
     if source_name:
         l_dir = os.listdir(os.path.join(directory, source_name))
     else:
@@ -184,25 +189,46 @@ def _get_dir_source_name(directory, source_name=None, l_sources_name=set()):
     # empty directory
     if not l_dir:
         return l_sources_name.add(source_name)
-        return l_sources_name
     else:
         for src_name in l_dir:
             if len(src_name) == 4:
-                try:
-                    int(src_name)
-                    l_sources_name.add(os.path.join(source_name))
-                    return l_sources_name
-                except:
-                    pass
+                #try:
+                int(src_name)
+                to_add = os.path.join(source_name)
+                # filter sources, remove first directory
+                if filter_dir:
+                    to_add = to_add.replace('archive/', '').replace('alerts/', '')
+                l_sources_name.add(to_add)
+                return l_sources_name
+                #except:
+                #    pass
             if source_name:
                 src_name = os.path.join(source_name, src_name)
-            l_sources_name = _get_dir_source_name(directory, source_name=src_name, l_sources_name=l_sources_name)
+            l_sources_name = _get_dir_source_name(directory, source_name=src_name, l_sources_name=l_sources_name, filter_dir=filter_dir)
     return l_sources_name
 
 
-def get_all_items_sources():
-    res = _get_dir_source_name(PASTES_FOLDER)
-    print(res)
+def get_all_items_sources(filter_dir=False, r_list=False):
+    res = _get_dir_source_name(PASTES_FOLDER, filter_dir=filter_dir)
+    if res:
+        if r_list:
+            res = list(res)
+        return res
+    else:
+        return []
+
+def verify_sources_list(sources):
+    all_sources = get_all_items_sources()
+    for source in sources:
+        if source not in all_sources:
+            return ({'status': 'error', 'reason': 'Invalid source', 'value': source}, 400)
+    return None
+
+def get_all_items_metadata_dict(list_id):
+    list_meta = []
+    for item_id in list_id:
+        list_meta.append( {'id': item_id, 'date': get_item_date(item_id), 'tags': Tag.get_obj_tag(item_id)} )
+    return list_meta
 
 ##--  --##
 

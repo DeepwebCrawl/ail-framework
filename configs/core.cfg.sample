@@ -77,6 +77,7 @@ minTopPassList=5
 max_execution_time = 90
 
 [Onion]
+save_i2p = False
 max_execution_time = 180
 
 [PgpDump]
@@ -115,10 +116,10 @@ operation_mode = 3
 ttl_duplicate = 86400
 default_unnamed_feed_name = unnamed_feeder
 
-[TermTrackerMod]
+[Tracker_Term]
 max_execution_time = 120
 
-[RegexTracker]
+[Tracker_Regex]
 max_execution_time = 60
 
 ##### Redis #####
@@ -252,10 +253,6 @@ address = tcp://127.0.0.1:5556,tcp://crf.circl.lu:5556
 channel = 102
 bind = tcp://127.0.0.1:5556
 
-[ZMQ_Url]
-address = tcp://127.0.0.1:5004
-channel = urls
-
 [ZMQ_FetchedOnion]
 address = tcp://127.0.0.1:5005
 channel = FetchedOnion
@@ -280,3 +277,12 @@ domain_proxy = onion.foundation
 # list of comma-separated CIDR that you wish to be alerted for. e.g:
 #networks = 192.168.34.0/24,10.0.0.0/8,192.168.33.0/24
 networks =
+
+[SubmitPaste]
+# 1 Mb Max text paste size for text submission
+TEXT_MAX_SIZE = 1000000
+# 1 Gb Max file size for file submission
+FILE_MAX_SIZE = 1000000000
+# Managed file extenions for file submission, comma separated
+# TODO add zip, gz and tar.gz
+FILE_ALLOWED_EXTENSIONS = txt,sh,pdf
